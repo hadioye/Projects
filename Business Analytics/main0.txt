@@ -1,0 +1,79 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import time
+
+def init_driver():
+    options = webdriver.ChromeOptions()
+    # Uncomment this line if you want to see the browser UI
+    options.add_argument('--headless')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+    driver = webdriver.Chrome(options=options)
+    return driver
+
+def get_business_info(driver, business_url):
+    driver.get(business_url)
+    
+    try:
+        # Get business name
+        business_name_element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, '//h1[@class="DUwDvf lfPIob"]'))
+        )
+        business_name = business_name_element.text
+
+        # Get rating
+        rating_element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, '//div[contains(@class, "F7nice ")]/span/span[@aria-hidden="true"]'))
+        )
+        rating = rating_element.text
+
+        # Get reviews count
+        reviews_count_element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, '//div[contains(@class, "F7nice ")]/span/span/span[@aria-label and not(@aria-hidden="true")]'))
+        )
+        reviews_count = reviews_count_element.text.strip("()")
+
+        # Get category
+        category_element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, '//button[contains(@class, "DkEaL") and contains(@jsaction, "category")]'))
+        )
+        category = category_element.text
+
+        return {
+            "name": business_name,
+            "rating": rating,
+            "reviews_count": reviews_count,
+            "category": category
+        }
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
+
+def main(business_url):
+    driver = init_driver()
+    
+    try:
+        # Get business information
+        print("Retrieving business information...")
+        business_info = get_business_info(driver, business_url)
+        
+        if business_info:
+            print(f"Business Name: {business_info['name']}")
+            print(f"Rating: {business_info['rating']}")
+            print(f"Reviews Count: {business_info['reviews_count']}")
+            print(f"Category: {business_info['category']}")
+        else:
+            print("Failed to retrieve business information.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        # Ensure the driver quits even if an error occurs
+        driver.quit()
+
+
+if __name__ == "__main__":
+    # Replace this with the actual Google Maps URL of the business you want to analyze
+    business_url = 'https://www.google.com/maps/place/Jinnah+Hospital/@31.4812021,74.2796814,14.27z/data=!4m14!1m7!3m6!1s0x391903f83ee33201:0x1bb794f181b173e2!2sNew+Ittifaq+Cricket+Club+%26+Academy!8m2!3d31.4796232!4d74.3098692!16s%2Fg%2F1q5gvw0rt!3m5!1s0x391903ee86619e19:0x1df20c73e9c6c4f3!8m2!3d31.484267!4d74.296861!16s%2Fm%2F03d05zd?entry=ttu'
+    main(business_url)
