@@ -49,15 +49,17 @@ def draw_wrapped_text(draw, text, position, font, fill, outline_fill, outline_wi
         draw_text(draw, line, title_text_position, font, fill, outline_fill, outline_width)
         current_height += draw.textbbox((0, 0), line, font=font, spacing=0, align="center")[3] - draw.textbbox((0, 0), line, font=font, spacing=0, align="center")[1]
 
-# Function to create the final image
-def create_title_image(background, mystery_image, title_text,handle_text , output_path):
+# Main function to create the final image
+def create_title_image(background_path, mystery_image_path, title_text, output_path):
     # Load the background image
+    background = Image.open(background_path).convert('RGBA')
     width, height = background.size
 
     # Apply gradient overlay
     background = apply_gradient(background)
 
     # Load and process the mystery image
+    mystery_image = Image.open(mystery_image_path).convert('RGBA')
     mystery_image_size = (250, 250)  # Change this size if needed
     mystery_image = mystery_image.resize(mystery_image_size)
     mystery_image = create_circular_mask(mystery_image)
@@ -67,7 +69,7 @@ def create_title_image(background, mystery_image, title_text,handle_text , outpu
     background.paste(mystery_image, mystery_image_position, mystery_image)
 
     # Add "@SkipRatRace" text below the mystery image
-    
+    handle_text = "@SkipRatRace"
     handle_font_size = 30
     handle_font = ImageFont.truetype("arial.ttf", handle_font_size)
     draw = ImageDraw.Draw(background)
@@ -109,7 +111,7 @@ def create_title_image(background, mystery_image, title_text,handle_text , outpu
     arrow_image = arrow_image.resize(arrow_size)
 
     # Position the call to action text and arrow
-    call_to_action_position = ((width - call_to_action_width - arrow_size[0] - 5) , height - call_to_action_height - 20)  # Adjust position as needed
+    call_to_action_position = ((width - call_to_action_width - arrow_size[0] - 5) -100, height - call_to_action_height - 20)  # Adjust position as needed
 
     draw_text(draw, call_to_action_text, call_to_action_position, call_to_action_font, fill="white", outline_fill="black", outline_width=2)
 
@@ -118,5 +120,25 @@ def create_title_image(background, mystery_image, title_text,handle_text , outpu
     background.paste(arrow_image, arrow_position, arrow_image)
 
     # Save the final image
+    output_folder = "Output"
+    output_path = f"{output_folder}/{output_path}"
     background.save(output_path)
     print(f"Title image saved to {output_path}")
+
+
+# Function to read title from script.txt
+def read_title_from_script(script_path):
+    with open(script_path, 'r') as file:
+        for line in file:
+            if line.startswith("Title:"):
+                # Extract the title text
+                title_text = line[len("Title:"):].strip()
+                return title_text
+
+# Example usage
+script_path = "script.txt"
+title_text = read_title_from_script(script_path)
+background_path = "Background/background_1.jpeg"
+mystery_image_path = "PFP/pfp_2.jpeg"
+output_path = "output.png"
+create_title_image(background_path, mystery_image_path, title_text, output_path)
